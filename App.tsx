@@ -4,7 +4,8 @@ import { ANIMALS } from './constants';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { EggSelection } from './components/EggSelection';
 import { GameScreen } from './components/GameScreen';
-import { generateSpeech, playAudioBuffer, stopAudio } from './services/geminiService';
+import { CelebrationScreen } from './components/CelebrationScreen';
+import { stopAudio } from './services/geminiService';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.WELCOME);
@@ -28,15 +29,6 @@ export default function App() {
 
   const handleWin = () => {
     setGameState(GameState.CELEBRATION);
-    // Final speech
-    if (selectedAnimalId && user) {
-        const animal = ANIMALS[selectedAnimalId];
-        const finalVoice = animal.stages[animal.stages.length -1].voice;
-        setTimeout(async () => {
-            const buff = await generateSpeech(`I am fully grown now! Thank you ${user.name} for taking care of me. You are my best friend!`, finalVoice);
-            if(buff) playAudioBuffer(buff);
-        }, 1000);
-    }
   };
 
   const resetGame = () => {
@@ -53,7 +45,7 @@ export default function App() {
         return <WelcomeScreen onStart={startApp} />;
       
       case GameState.SELECT_EGG:
-        return <EggSelection onSelect={selectEgg} />;
+        return <EggSelection onSelect={selectEgg} onBack={resetGame} />;
       
       case GameState.HATCHING:
         const animal = selectedAnimalId ? ANIMALS[selectedAnimalId] : null;
@@ -73,30 +65,18 @@ export default function App() {
             animal={ANIMALS[selectedAnimalId]} 
             user={user} 
             onWin={handleWin} 
+            onExit={resetGame}
           />
         );
 
       case GameState.CELEBRATION:
-        const finalAnimal = selectedAnimalId ? ANIMALS[selectedAnimalId] : null;
-        const finalEmoji = finalAnimal?.stages[finalAnimal.stages.length - 1].emoji;
+        if (!selectedAnimalId || !user) return null;
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center text-center p-4 bg-gradient-to-b from-blue-200 to-purple-200">
-                <div className="text-[12rem] animate-bounce-slow mb-4 filter drop-shadow-2xl">
-                    {finalEmoji}
-                </div>
-                <h1 className="text-5xl md:text-7xl font-bold text-purple-600 mb-4 animate-pop-in">
-                    Congratulations!
-                </h1>
-                <p className="text-2xl text-gray-700 mb-12 max-w-lg mx-auto">
-                    {user?.name}, you raised a happy and healthy {finalAnimal?.name}!
-                </p>
-                <button 
-                    onClick={resetGame}
-                    className="bg-white text-purple-600 px-10 py-4 rounded-full text-2xl font-bold shadow-xl hover:bg-purple-50 transition-colors"
-                >
-                    Play Again 🔄
-                </button>
-            </div>
+            <CelebrationScreen 
+                animal={ANIMALS[selectedAnimalId]}
+                user={user}
+                onRestart={resetGame}
+            />
         );
         
       default:

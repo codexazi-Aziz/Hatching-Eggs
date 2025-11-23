@@ -6,6 +6,7 @@ export const ANIMALS: Record<AnimalType, AnimalDef> = {
     name: 'Chicken',
     eggColor: 'bg-yellow-200 border-yellow-400',
     eggEmoji: '🥚',
+    finalSound: 'Cock-a-doodle-doo! Cluck cluck!',
     stages: [
       { emoji: '🐣', title: 'Hatching', voice: 'Puck' },
       { emoji: '🐣', title: 'Newborn Chick', voice: 'Puck' },
@@ -22,6 +23,7 @@ export const ANIMALS: Record<AnimalType, AnimalDef> = {
     name: 'Dino',
     eggColor: 'bg-green-200 border-green-400',
     eggEmoji: '🥚',
+    finalSound: 'Rooooaaaar! Grrrrr!',
     stages: [
       { emoji: '🥚', title: 'Cracking Egg', voice: 'Puck' },
       { emoji: '🦖', title: 'Tiny Dino', voice: 'Puck' },
@@ -38,6 +40,7 @@ export const ANIMALS: Record<AnimalType, AnimalDef> = {
     name: 'Dragon',
     eggColor: 'bg-red-200 border-red-400',
     eggEmoji: '🥚',
+    finalSound: 'Whoooosh! Rooooar!',
     stages: [
       { emoji: '🥚', title: 'Hot Egg', voice: 'Puck' },
       { emoji: '🦎', title: 'Baby Dragon', voice: 'Puck' },
@@ -54,6 +57,7 @@ export const ANIMALS: Record<AnimalType, AnimalDef> = {
     name: 'Turtle',
     eggColor: 'bg-emerald-200 border-emerald-400',
     eggEmoji: '🥚',
+    finalSound: 'Snap snap! Splash!',
     stages: [
       { emoji: '🐢', title: 'Hatchling', voice: 'Puck' },
       { emoji: '🐢', title: 'Tiny Turtle', voice: 'Puck' },
@@ -63,6 +67,40 @@ export const ANIMALS: Record<AnimalType, AnimalDef> = {
       { emoji: '🌊', title: 'Sea Turtle', voice: 'Fenrir' },
       { emoji: '🌊', title: 'Ocean Traveler', voice: 'Fenrir' },
       { emoji: '👑🐢', title: 'Wise Tortoise', voice: 'Fenrir' },
+    ],
+  },
+  [AnimalType.PENGUIN]: {
+    id: AnimalType.PENGUIN,
+    name: 'Penguin',
+    eggColor: 'bg-blue-200 border-blue-400',
+    eggEmoji: '🥚',
+    finalSound: 'Honk honk! Squeak!',
+    stages: [
+      { emoji: '🥚', title: 'Icy Egg', voice: 'Puck' },
+      { emoji: '🐧', title: 'Grey Chick', voice: 'Puck' },
+      { emoji: '❄️', title: 'Fluffy Ball', voice: 'Puck' },
+      { emoji: '🧊', title: 'Ice Slider', voice: 'Puck' },
+      { emoji: '🐧', title: 'Young Penguin', voice: 'Kore' },
+      { emoji: '🌊', title: 'Fast Swimmer', voice: 'Fenrir' },
+      { emoji: '🐧', title: 'Emperor', voice: 'Fenrir' },
+      { emoji: '👑🐧', title: 'King Penguin', voice: 'Fenrir' },
+    ],
+  },
+  [AnimalType.OWL]: {
+    id: AnimalType.OWL,
+    name: 'Owl',
+    eggColor: 'bg-amber-200 border-amber-400',
+    eggEmoji: '🥚',
+    finalSound: 'Hoot hoot! Whoo whoo!',
+    stages: [
+      { emoji: '🥚', title: 'Nest Egg', voice: 'Puck' },
+      { emoji: '🦉', title: 'Baby Owlet', voice: 'Puck' },
+      { emoji: '🍂', title: 'Branch Hopper', voice: 'Puck' },
+      { emoji: '👀', title: 'Big Eyes', voice: 'Puck' },
+      { emoji: '🦉', title: 'Night Flyer', voice: 'Zephyr' },
+      { emoji: '🌙', title: 'Moon Watcher', voice: 'Zephyr' },
+      { emoji: '🦉', title: 'Wise Owl', voice: 'Fenrir' },
+      { emoji: '👑🦉', title: 'Forest Guardian', voice: 'Fenrir' },
     ],
   },
 };

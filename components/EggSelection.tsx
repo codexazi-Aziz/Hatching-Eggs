@@ -4,12 +4,22 @@ import { AnimalType } from '../types';
 
 interface Props {
   onSelect: (animal: AnimalType) => void;
+  onBack: () => void;
 }
 
-export const EggSelection: React.FC<Props> = ({ onSelect }) => {
+export const EggSelection: React.FC<Props> = ({ onSelect, onBack }) => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <h2 className="text-3xl md:text-5xl font-bold text-blue-600 mb-8 text-center drop-shadow-sm">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+      {/* Exit Button */}
+      <button 
+        onClick={onBack}
+        className="absolute top-4 right-4 bg-white/80 hover:bg-red-100 text-red-500 font-bold px-4 py-2 rounded-full shadow-lg border-2 border-red-100 transition-all z-50"
+        aria-label="Exit Selection"
+      >
+        Exit ❌
+      </button>
+
+      <h2 className="text-3xl md:text-5xl font-bold text-blue-600 mb-8 text-center drop-shadow-sm mt-8">
         Pick an Egg to Hatch!
       </h2>
       

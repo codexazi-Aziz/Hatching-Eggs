@@ -8,6 +8,9 @@ const ai = new GoogleGenAI({ apiKey });
 let audioContext: AudioContext | null = null;
 let currentSource: AudioBufferSourceNode | null = null;
 
+// In-Memory Cache for Images to speed up transitions
+const imageCache = new Map<string, string>();
+
 const getAudioContext = () => {
   if (!audioContext) {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -71,7 +74,6 @@ export const generateQuestion = async (animal: string, age: number, stageLevel: 
       topic = 'fun science facts, space, or puzzles suitable for kids';
     }
     
-    // Updated prompt for longer questions
     const prompt = `Generate a multiple-choice question for a ${age}-year-old child playing a game with a ${animal}. 
     Difficulty: ${difficulty}. 
     Topic: ${topic}.
@@ -105,7 +107,6 @@ export const generateQuestion = async (animal: string, age: number, stageLevel: 
 
   } catch (error) {
     console.error("Error generating question:", error);
-    // Fallback question to ensure app doesn't crash
     return {
       questionText: `The ${animal} is looking very hungry today and wants a snack! What sound does a ${animal} make when it is happy?`,
       options: ["Moo", "Roar/Cluck", "Meow"],
@@ -135,7 +136,6 @@ export const generateSpeech = async (text: string, voiceName: string = 'Puck'): 
 
     const ctx = getAudioContext();
     
-    // Gemini TTS currently returns 24kHz mono PCM
     const audioBuffer = await decodeAudioData(
         decode(base64Audio), 
         ctx, 
@@ -152,22 +152,37 @@ export const generateSpeech = async (text: string, voiceName: string = 'Puck'): 
 };
 
 export const generateAnimalImage = async (animal: string, stageTitle: string): Promise<string | null> => {
+  // Check Cache First
+  const cacheKey = `${animal}-${stageTitle}`;
+  if (imageCache.has(cacheKey)) {
+    console.log("Serving image from cache");
+    return imageCache.get(cacheKey) || null;
+  }
+
   try {
-    // Prompt designed for a consistent, cute sticker/3D style suitable for kids
-    const prompt = `A cute, adorable, high quality 3D render of a ${stageTitle} ${animal} looking at the camera, bright vivid colors, friendly face, pixar style, simple white or soft pastel background, full body shot, centered.`;
+    let prompt = "";
+    if (stageTitle.includes("Real Realistic")) {
+         prompt = `A hyper-realistic, award-winning National Geographic style photograph of a real ${animal} in its natural beautiful habitat. High detail, cinematic lighting, 4k resolution.`;
+    } else {
+        prompt = `A cute, adorable, high quality 3D render of a ${stageTitle} ${animal} looking at the camera, bright vivid colors, friendly face, pixar style, simple white or soft pastel background, full body shot, centered.`;
+    }
     
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [{ text: prompt }],
       },
-      // Do not use responseMimeType for image generation models
     });
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
         const base64EncodeString = part.inlineData.data;
-        return `data:image/png;base64,${base64EncodeString}`;
+        const finalUrl = `data:image/png;base64,${base64EncodeString}`;
+        
+        // Save to cache
+        imageCache.set(cacheKey, finalUrl);
+        
+        return finalUrl;
       }
     }
     return null;
@@ -181,6 +196,7 @@ export const stopAudio = () => {
   if (currentSource) {
     try {
       currentSource.stop();
+      currentSource.onended = null; // Remove listener to prevent firing events
     } catch (e) {
       // Ignore error if already stopped
     }
@@ -188,26 +204,29 @@ export const stopAudio = () => {
   }
 };
 
-export const playAudioBuffer = async (buffer: AudioBuffer) => {
+// Returns a promise that resolves when audio finishes playing
+export const playAudioBuffer = async (buffer: AudioBuffer): Promise<void> => {
   const ctx = getAudioContext();
   
-  // Resume context if suspended (browser policy)
   if (ctx.state === 'suspended') {
     await ctx.resume();
   }
 
-  // STOP previous audio before playing new one
   stopAudio();
 
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  source.connect(ctx.destination);
-  source.start(0);
-  currentSource = source;
+  return new Promise((resolve) => {
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    
+    source.onended = () => {
+      if (currentSource === source) {
+        currentSource = null;
+      }
+      resolve();
+    };
 
-  source.onended = () => {
-    if (currentSource === source) {
-      currentSource = null;
-    }
-  };
+    source.start(0);
+    currentSource = source;
+  });
 };

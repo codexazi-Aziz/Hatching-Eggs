@@ -11,6 +11,8 @@ export enum AnimalType {
   DINO = 'DINO',
   DRAGON = 'DRAGON',
   TURTLE = 'TURTLE',
+  PENGUIN = 'PENGUIN',
+  OWL = 'OWL',
 }
 
 export interface AnimalDef {
@@ -18,6 +20,7 @@ export interface AnimalDef {
   name: string;
   eggColor: string;
   eggEmoji: string;
+  finalSound: string; // The text representation of the animal sound (e.g., "Roar!")
   stages: {
     emoji: string;
     title: string;
