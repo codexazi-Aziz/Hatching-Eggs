@@ -5,7 +5,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { EggSelection } from './components/EggSelection';
 import { GameScreen } from './components/GameScreen';
 import { CelebrationScreen } from './components/CelebrationScreen';
-import { stopAudio } from './services/geminiService';
+import { stopAudio, generateSpeech, playAudioBuffer } from './services/geminiService';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.WELCOME);
@@ -17,14 +17,24 @@ export default function App() {
     setGameState(GameState.SELECT_EGG);
   };
 
-  const selectEgg = (id: AnimalType) => {
+  const selectEgg = async (id: AnimalType) => {
     setSelectedAnimalId(id);
     setGameState(GameState.HATCHING);
     
+    // Play hatching sound
+    try {
+        const soundBuffer = await generateSpeech("Crack! Crackle! Pop! Hello world!", 'Puck');
+        if (soundBuffer) {
+            playAudioBuffer(soundBuffer);
+        }
+    } catch (e) {
+        console.error("Failed to play hatching sound", e);
+    }
+
     // Simulated Hatching Sequence
     setTimeout(() => {
       setGameState(GameState.PLAYING);
-    }, 2500);
+    }, 4000); // Increased time slightly to allow sound to play
   };
 
   const handleWin = () => {

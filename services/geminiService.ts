@@ -155,13 +155,13 @@ export const generateAnimalImage = async (animal: string, stageTitle: string): P
   // Check Cache First
   const cacheKey = `${animal}-${stageTitle}`;
   if (imageCache.has(cacheKey)) {
-    console.log("Serving image from cache");
+    console.log("Serving image from cache for:", cacheKey);
     return imageCache.get(cacheKey) || null;
   }
 
   try {
     let prompt = "";
-    if (stageTitle.includes("Real Realistic")) {
+    if (stageTitle.includes("Real Realistic") || stageTitle.includes("Nature")) {
          prompt = `A hyper-realistic, award-winning National Geographic style photograph of a real ${animal} in its natural beautiful habitat. High detail, cinematic lighting, 4k resolution.`;
     } else {
         prompt = `A cute, adorable, high quality 3D render of a ${stageTitle} ${animal} looking at the camera, bright vivid colors, friendly face, pixar style, simple white or soft pastel background, full body shot, centered.`;

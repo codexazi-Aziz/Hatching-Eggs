@@ -13,6 +13,8 @@ export enum AnimalType {
   TURTLE = 'TURTLE',
   PENGUIN = 'PENGUIN',
   OWL = 'OWL',
+  SNAKE = 'SNAKE',
+  OSTRICH = 'OSTRICH',
 }
 
 export interface AnimalDef {

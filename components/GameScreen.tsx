@@ -28,10 +28,6 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
 
-  // Audio Pre-fetching State
-  const [successAudio, setSuccessAudio] = useState<AudioBuffer | null>(null);
-  const [failureAudio, setFailureAudio] = useState<AudioBuffer | null>(null);
-
   const currentStageDef = animal.stages[stage];
 
   // Cleanup audio on unmount
@@ -44,8 +40,8 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
 
   // Play audio helper with UI blocking
   const speak = useCallback(async (text: string, overrideVoice?: string) => {
-    const voice = overrideVoice || currentStageDef.voice;
     setIsAudioPlaying(true);
+    const voice = overrideVoice || currentStageDef.voice;
     const buffer = await generateSpeech(text, voice);
     if (buffer) {
         await playAudioBuffer(buffer);
@@ -87,15 +83,12 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
   const loadQuestion = async () => {
     setLoading(true);
     isQuestionActiveRef.current = true;
-    
-    setSuccessAudio(null);
-    setFailureAudio(null);
     setCurrentQuestion(null);
 
     // 1. Generate Question Text
     const q = await generateQuestion(animal.name, user.age, stage);
     
-    // 2. Generate Audio
+    // 2. Generate Audio (pre-load)
     let questionAudio: AudioBuffer | null = null;
     if (q) {
         questionAudio = await generateSpeech(q.questionText, currentStageDef.voice);
@@ -110,26 +103,14 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
         await playAudioBuffer(questionAudio);
         setIsAudioPlaying(false);
     }
-
-    // 4. Load Feedback Audio in Background
-    if (q) {
-       const voice = currentStageDef.voice;
-       
-       const correctOptionText = q.options[q.correctAnswerIndex];
-       const successText = `Correct! ${correctOptionText}. ${q.explanation}`;
-       generateSpeech(successText, voice).then(buff => setSuccessAudio(buff));
-
-       const failureText = "Oh no, that is not right. Try again!";
-       generateSpeech(failureText, voice).then(buff => setFailureAudio(buff));
-    }
   };
 
   const handleAnswer = async (index: number) => {
     if (selectedOption !== null || isAudioPlaying) return; 
     
-    // Stop question audio logic is handled by UI lock, but strict safe guard:
-    isQuestionActiveRef.current = false;
+    // Stop any ongoing audio immediately
     stopAudio(); 
+    isQuestionActiveRef.current = false;
 
     setSelectedOption(index);
     
@@ -137,27 +118,19 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
     setIsCorrect(correct);
     setShowFeedback(true);
     
-    setIsAudioPlaying(true); // Lock Next button while feedback plays
+    setIsAudioPlaying(true); // Lock buttons while feedback plays
 
     if (correct) {
-      if (successAudio) {
-        await playAudioBuffer(successAudio);
-      } else {
-         const answerName = currentQuestion?.options[index] || "";
-         await speak(`Correct! ${answerName}. ${currentQuestion?.explanation || "Good job!"}`);
-      }
+       const answerName = currentQuestion?.options[index] || "";
+       await speak(`Correct! ${answerName}. ${currentQuestion?.explanation || "Good job!"}`);
     } else {
-      if (failureAudio) {
-        await playAudioBuffer(failureAudio);
-      } else {
-        await speak("Oh no, that is not right. Try again!");
-      }
+       await speak("Oh no, that is not right. Try again!");
     }
     
-    setIsAudioPlaying(false); // Unlock Next button
+    setIsAudioPlaying(false); // Unlock buttons
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isAudioPlaying) return;
 
     if (isCorrect) {
@@ -170,10 +143,10 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
         setIsCorrect(null);
         stopAudio();
         
-        setTimeout(() => {
-           setStage(prev => prev + 1);
-           setIsGrowing(false);
-        }, 1500);
+        // Wait for visual transition
+        await new Promise(r => setTimeout(r, 1500));
+        setStage(prev => prev + 1);
+        setIsGrowing(false);
       }
     } else {
         // Try again logic
@@ -203,6 +176,7 @@ export const GameScreen: React.FC<Props> = ({ animal, user, onWin, onExit }) => 
             
             const textToSpeak = growTexts[Math.min(stage - 1, growTexts.length - 1)];
             await speak(textToSpeak, currentStageDef.voice);
+            
             loadQuestion();
         };
         

@@ -19,13 +19,12 @@ export const CelebrationScreen: React.FC<Props> = ({ animal, user, onRestart }) 
     const sequence = async () => {
       stopAudio(); // Ensure silence before starting
       
-      // 1. Generate Realistic Image (Cached automatically by service if same prompt)
-      const prompt = `A hyper-realistic, award-winning National Geographic style photograph of a real ${animal.name} in its natural beautiful habitat. High detail, cinematic lighting, 8k resolution.`;
-      
+      // 1. Generate Realistic Image
       // Parallelize image generation and audio generation for speed
       const imagePromise = generateAnimalImage(animal.name, "Real Realistic Nature");
       
       // 2. Generate Sounds
+      // The animal sound (e.g., "Roar")
       const soundEffectPromise = generateSpeech(animal.finalSound, 'Fenrir');
       
       const speechText = `I am fully grown now! Look at me! I am a real ${animal.name}. Thank you ${user.name} for taking care of me. You are my best friend!`;
@@ -50,7 +49,7 @@ export const CelebrationScreen: React.FC<Props> = ({ animal, user, onRestart }) 
              await playAudioBuffer(soundBuffer);
              
              // Small pause between roar and speech
-             await new Promise(r => setTimeout(r, 500)); 
+             await new Promise(r => setTimeout(r, 800)); 
 
              if (speechBuffer && mounted) {
                 await playAudioBuffer(speechBuffer);
